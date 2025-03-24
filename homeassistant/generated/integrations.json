@@ -4240,6 +4240,13 @@
       "integration_type": "virtual",
       "supported_by": "home_connect"
     },
+    "neo_smartbox": {
+      "name": "NEO Smartbox",
+      "integration_type": "hub",
+      "config_flow": true,
+      "iot_class": "cloud_push",
+      "single_config_entry": true
+    },
     "ness_alarm": {
       "name": "Ness Alarm",
       "integration_type": "hub",
