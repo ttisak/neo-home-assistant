@@ -1,0 +1,14 @@
+{
+  "domain": "neo_smartbox",
+  "name": "NEO Smartbox",
+  "codeowners": ["@ttisak"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/neo_smartbox",
+  "homekit": {},
+  "iot_class": "cloud_push",
+  "quality_scale": "bronze",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": []
+}
