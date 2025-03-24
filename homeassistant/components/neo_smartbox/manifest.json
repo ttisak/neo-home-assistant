@@ -3,12 +3,10 @@
   "name": "NEO Smartbox",
   "codeowners": ["@ttisak"],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/neo_smartbox",
-  "homekit": {},
+  "integration_type": "hub",
   "iot_class": "cloud_push",
   "quality_scale": "bronze",
   "requirements": [],
-  "ssdp": [],
-  "zeroconf": []
+  "single_config_entry": true
 }
