@@ -1,0 +1,25 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# Exclude everything by default
+*
+
+# Include only the neo_smartbox integration
+!homeassistant/components/neo_smartbox/
+!homeassistant/components/neo_smartbox/**
+
+# Include relevant config directories
+!config/
+!config/**
+
+# Include any custom component directories that may be needed
+!custom_components/neo_smartbox/
+!custom_components/neo_smartbox/**
+
+# Include any frontend/UI directories needed for development
+!www/
+!www/**
+
+# Include project configuration files
+!.github/
+!*.yaml
+!*.json

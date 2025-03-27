@@ -1,0 +1,445 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NEO Smartbox Dashboard</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background-color: #111;
+        color: white;
+        margin: 0;
+        padding: 16px;
+      }
+
+      .card-container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .neo-card {
+        background-color: #1c1c1c;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .power-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #2d2d2d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .power-button svg {
+        fill: #03a9f4;
+        width: 20px;
+        height: 20px;
+      }
+
+      .remote-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .media-controls {
+        width: 100%;
+        height: 60px;
+        border-radius: 32px;
+        background-color: #2d2d2d;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+      }
+
+      .media-button {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .media-button svg {
+        fill: #03a9f4;
+        width: 20px;
+        height: 20px;
+      }
+
+      .play-pause {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #03a9f4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .play-pause svg {
+        fill: #fff;
+        width: 24px;
+        height: 24px;
+      }
+
+      .dpad {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        width: 180px;
+        height: 180px;
+        position: relative;
+      }
+
+      .dpad-button {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .dpad-button svg {
+        fill: #03a9f4;
+        width: 24px;
+        height: 24px;
+      }
+
+      .dpad-center {
+        grid-column: 2;
+        grid-row: 2;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 2px solid #3d3d3d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        background-color: transparent;
+        cursor: pointer;
+      }
+
+      .dpad-center-text {
+        color: #03a9f4;
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      .nav-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      .nav-button {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #2d2d2d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .nav-button svg {
+        fill: #03a9f4;
+        width: 20px;
+        height: 20px;
+      }
+
+      .voice-controls {
+        width: 100%;
+        height: 60px;
+        border-radius: 32px;
+        background-color: #2d2d2d;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+        margin-top: 8px;
+      }
+
+      .voice-button {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .voice-button svg {
+        fill: #03a9f4;
+        width: 20px;
+        height: 20px;
+      }
+
+      .mic-button {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #03a9f4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .mic-button svg {
+        fill: #fff;
+        width: 24px;
+        height: 24px;
+      }
+
+      button {
+        background-color: #03a9f4;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 8px 0;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      #response {
+        margin-top: 16px;
+        padding: 12px;
+        background-color: #2d2d2d;
+        border-radius: 8px;
+        min-height: 60px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card-container">
+      <h1>NEO Smartbox Remote</h1>
+
+      <div class="neo-card">
+        <div class="card-header">
+          <div class="card-title">NEO Smartbox Living Room</div>
+          <div class="power-button" onclick="sendCommand('power')">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M13,3H11V13H13V3M17.83,5.17L16.41,6.59C17.99,7.86 19,9.81 19,12C19,15.87 15.87,19 12,19C8.13,19 5,15.87 5,12C5,9.81 6.01,7.86 7.58,6.58L6.17,5.17C4.23,6.82 3,9.26 3,12C3,16.97 7.03,21 12,21C16.97,21 21,16.97 21,12C21,9.26 19.77,6.82 17.83,5.17Z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="remote-container">
+          <!-- Media control buttons -->
+          <div class="media-controls">
+            <div class="media-button" onclick="sendCommand('rewind')">
+              <svg viewBox="0 0 24 24">
+                <path d="M11.5,12L20,18V6M11,18V6L2.5,12L11,18Z"></path>
+              </svg>
+            </div>
+            <div class="play-pause" onclick="sendCommand('play_pause')">
+              <svg viewBox="0 0 24 24">
+                <path d="M14,19H18V5H14M6,19H10V5H6V19Z"></path>
+              </svg>
+            </div>
+            <div class="media-button" onclick="sendCommand('fast_forward')">
+              <svg viewBox="0 0 24 24">
+                <path d="M13,6V18L21.5,12M4,18L12.5,12L4,6V18Z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- D-Pad controls -->
+          <div class="dpad">
+            <div
+              class="dpad-button"
+              style="grid-column: 2; grid-row: 1"
+              onclick="sendCommand('up')"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z"
+                ></path>
+              </svg>
+            </div>
+            <div
+              class="dpad-button"
+              style="grid-column: 1; grid-row: 2"
+              onclick="sendCommand('left')"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="dpad-center" onclick="sendCommand('select')">
+              <div class="dpad-center-text">ok</div>
+            </div>
+            <div
+              class="dpad-button"
+              style="grid-column: 3; grid-row: 2"
+              onclick="sendCommand('right')"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                ></path>
+              </svg>
+            </div>
+            <div
+              class="dpad-button"
+              style="grid-column: 2; grid-row: 3"
+              onclick="sendCommand('down')"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Navigation buttons -->
+          <div class="nav-row">
+            <div class="nav-button" onclick="sendCommand('back')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="nav-button" onclick="sendCommand('home')">
+              <svg viewBox="0 0 24 24">
+                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"></path>
+              </svg>
+            </div>
+            <div class="nav-button" onclick="sendCommand('menu')">
+              <svg viewBox="0 0 24 24">
+                <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Voice control buttons -->
+          <div class="voice-controls">
+            <div class="voice-button" onclick="sendCommand('volume_down')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.46 14,18.7V20.77C15.38,20.45 16.63,19.82 17.68,18.96L19.73,21L21,19.73L12,10.73M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.5,12.43 16.5,12.21 16.5,12Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="mic-button" onclick="sendCommand('voice_search')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="voice-button" onclick="sendCommand('volume_up')">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"
+                ></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="neo-card">
+        <h3>API Control</h3>
+        <div>
+          <label for="deviceId">Device ID:</label>
+          <input
+            type="text"
+            id="deviceId"
+            value="acb687eae8c8"
+            style="width: 100%; padding: 8px; margin: 8px 0"
+          />
+        </div>
+        <button onclick="sendCustomCommand()">Send Custom Command</button>
+        <div id="response">Response will appear here...</div>
+      </div>
+    </div>
+
+    <script>
+      function sendCommand(command) {
+        const deviceId = document.getElementById("deviceId").value;
+        console.log(`Sending command: ${command} to device: ${deviceId}`);
+
+        // In a real implementation, this would call the Home Assistant API
+        // For now, just show what would be sent
+        document.getElementById("response").innerHTML = `
+                Command sent:<br>
+                Device: ${deviceId}<br>
+                Action: ${command}
+            `;
+      }
+
+      function sendCustomCommand() {
+        // This would normally be hooked up to an actual API endpoint
+        const deviceId = document.getElementById("deviceId").value;
+
+        fetch(`/api/services/remote/send_command`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // In a real implementation you'd add authentication headers
+          },
+          body: JSON.stringify({
+            entity_id: `remote.neo_smartbox_${deviceId}`,
+            command: "power",
+          }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              document.getElementById("response").textContent =
+                "Command sent successfully!";
+            } else {
+              document.getElementById(
+                "response",
+              ).textContent = `Error: ${response.status} ${response.statusText}`;
+            }
+          })
+          .catch((error) => {
+            document.getElementById(
+              "response",
+            ).textContent = `Error: ${error.message}`;
+          });
+      }
+    </script>
+  </body>
+</html>

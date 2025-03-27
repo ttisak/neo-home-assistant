@@ -1,0 +1,5 @@
+type: "custom:neo-smartbox-remote-card"
+entity: remote.neo_smartbox_living_room # Replace with your NEO Smartbox entity ID
+# Optional: You can customize the card with additional properties if needed
+name: Living Room TV # Custom name for the card (overrides entity name)
+show_power_button: true # Show/hide power button (default: true)
