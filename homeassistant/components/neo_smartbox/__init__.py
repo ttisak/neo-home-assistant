@@ -23,8 +23,6 @@ CONFIG_SCHEMA = cv.removed(DOMAIN, raise_if_present=False)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up NEO Smartbox from a config entry."""
     # Initialize runtime_data if not already set
-    if not entry.runtime_data:
-        entry.runtime_data = {}
 
     api_key = entry.data[CONF_API_KEY]
 
