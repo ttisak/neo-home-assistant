@@ -35,4 +35,29 @@ REMOTE_COMMANDS = {
     "play_pause": "PlayPause",
     "rewind": "Rewind",
     "fast_forward": "FastForward",
+    "voice_search": "VoiceSearch",  # Added for voice search functionality
+    # Add any additional commands that may be needed
+}
+
+# NEO app command reference (for UI implementation)
+NEO_APP_COMMANDS = {
+    "power": "Power on/off the device",
+    "home": "Return to home screen",
+    "menu": "Open menu",
+    "back": "Go back",
+    "up": "Navigate up",
+    "down": "Navigate down",
+    "left": "Navigate left",
+    "right": "Navigate right",
+    "select": "Select (OK)",
+    "volume_up": "Increase volume",
+    "volume_down": "Decrease volume",
+    "channel_up": "Next channel",
+    "channel_down": "Previous channel",
+    "mute": "Mute audio",
+    "play_pause": "Play or pause media",
+    "rewind": "Rewind media",
+    "fast_forward": "Fast forward media",
+    "guide": "Open guide",
+    "voice_search": "Activate voice search",
 }

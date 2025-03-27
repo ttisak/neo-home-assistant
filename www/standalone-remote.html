@@ -1,0 +1,261 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NEO Smartbox Standalone Remote</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: #111;
+        color: white;
+        margin: 0;
+        padding: 16px;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background-color: #1c1c1c;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 500;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      button {
+        background-color: #333;
+        color: #03a9f4;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      button:hover {
+        background-color: #444;
+      }
+
+      .button-big {
+        grid-column: span 3;
+        background-color: #03a9f4;
+        color: white;
+      }
+
+      .button-big:hover {
+        background-color: #0288d1;
+      }
+
+      .section-title {
+        margin: 16px 0 8px 0;
+        font-size: 14px;
+        color: #888;
+      }
+
+      #status {
+        background-color: #222;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 16px;
+        min-height: 20px;
+        font-family: monospace;
+      }
+
+      .settings {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      input,
+      select {
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>NEO Smartbox Remote</h1>
+
+      <div class="card">
+        <div class="settings">
+          <label for="haUrl">Home Assistant URL:</label>
+          <input type="text" id="haUrl" value="http://localhost:8123" />
+
+          <label for="token">Long-lived Access Token:</label>
+          <input
+            type="password"
+            id="token"
+            placeholder="Enter your access token"
+          />
+
+          <label for="entity">Entity ID:</label>
+          <input
+            type="text"
+            id="entity"
+            value="remote.neo_smartbox_acb687eae8c8"
+          />
+
+          <button class="button-big" onclick="saveSettings()">
+            Save Settings
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Power</div>
+        </div>
+        <div class="button-grid">
+          <button class="button-big" onclick="sendCommand('power')">
+            Power
+          </button>
+        </div>
+
+        <div class="section-title">Navigation</div>
+        <div class="button-grid">
+          <button onclick="sendCommand('left')">Left</button>
+          <button onclick="sendCommand('up')">Up</button>
+          <button onclick="sendCommand('right')">Right</button>
+          <button onclick="sendCommand('back')">Back</button>
+          <button onclick="sendCommand('select')">OK</button>
+          <button onclick="sendCommand('home')">Home</button>
+          <button onclick="sendCommand('menu')">Menu</button>
+          <button onclick="sendCommand('down')">Down</button>
+          <button></button>
+        </div>
+
+        <div class="section-title">Media Control</div>
+        <div class="button-grid">
+          <button onclick="sendCommand('rewind')">◀◀</button>
+          <button onclick="sendCommand('play_pause')">▶❚❚</button>
+          <button onclick="sendCommand('fast_forward')">▶▶</button>
+        </div>
+
+        <div class="section-title">Volume</div>
+        <div class="button-grid">
+          <button onclick="sendCommand('volume_down')">Vol -</button>
+          <button onclick="sendCommand('mute')">Mute</button>
+          <button onclick="sendCommand('volume_up')">Vol +</button>
+        </div>
+
+        <div class="section-title">Voice</div>
+        <div class="button-grid">
+          <button class="button-big" onclick="sendCommand('voice_search')">
+            Voice Search
+          </button>
+        </div>
+
+        <div id="status">Ready</div>
+      </div>
+    </div>
+
+    <script>
+      // Load settings from localStorage when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        const haUrl = localStorage.getItem("haUrl");
+        const token = localStorage.getItem("token");
+        const entity = localStorage.getItem("entity");
+
+        if (haUrl) document.getElementById("haUrl").value = haUrl;
+        if (token) document.getElementById("token").value = token;
+        if (entity) document.getElementById("entity").value = entity;
+
+        updateStatus("Ready. Settings loaded from browser storage.");
+      });
+
+      function saveSettings() {
+        const haUrl = document.getElementById("haUrl").value;
+        const token = document.getElementById("token").value;
+        const entity = document.getElementById("entity").value;
+
+        localStorage.setItem("haUrl", haUrl);
+        localStorage.setItem("token", token);
+        localStorage.setItem("entity", entity);
+
+        updateStatus("Settings saved to browser storage.");
+      }
+
+      function updateStatus(message) {
+        const status = document.getElementById("status");
+        status.textContent = message;
+      }
+
+      function sendCommand(command) {
+        const haUrl = document.getElementById("haUrl").value;
+        const token = document.getElementById("token").value;
+        const entity = document.getElementById("entity").value;
+
+        if (!haUrl || !token || !entity) {
+          updateStatus("Error: Please fill in all settings fields.");
+          return;
+        }
+
+        updateStatus(`Sending command: ${command} to ${entity}...`);
+
+        fetch(`${haUrl}/api/services/remote/send_command`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            entity_id: entity,
+            command: command,
+          }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              updateStatus(`Command '${command}' sent successfully.`);
+            } else {
+              response.text().then((text) => {
+                updateStatus(
+                  `Error: ${response.status} ${response.statusText} - ${text}`,
+                );
+              });
+            }
+          })
+          .catch((error) => {
+            updateStatus(`Error: ${error.message}`);
+            console.error("Error:", error);
+          });
+      }
+    </script>
+  </body>
+</html>

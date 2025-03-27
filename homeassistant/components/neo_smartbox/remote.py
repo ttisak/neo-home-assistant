@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, REMOTE_COMMANDS
+from .const import DOMAIN, NEO_APP_COMMANDS, REMOTE_COMMANDS
 from .coordinator import NeoSmartboxUpdateCoordinator
 from .models import NeoSmartboxDevice
 
@@ -36,6 +36,8 @@ async def async_setup_entry(
 class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteEntity):
     """Representation of a NEO Smartbox remote."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self, coordinator: NeoSmartboxUpdateCoordinator, device: NeoSmartboxDevice
     ) -> None:
@@ -46,6 +48,8 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
         self._attr_unique_id = f"{DOMAIN}_{self._device_id}"
         self._attr_name = device.name
         self._attr_is_on = device.is_available
+        self._attr_commands_encoding = list(NEO_APP_COMMANDS.keys())
+        self._attr_current_activity = "Idle" if device.is_available else None
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -65,6 +69,15 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
                 return device.is_available
         return False
 
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return device specific state attributes."""
+        return {
+            "available_commands": list(NEO_APP_COMMANDS.keys()),
+            "command_descriptions": NEO_APP_COMMANDS,
+            "device_id": self._device_id,
+        }
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -72,13 +85,16 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
             if device.device_id == self._device_id:
                 self._device = device
                 self._attr_is_on = device.is_available
+                self._attr_current_activity = "Idle" if device.is_available else None
                 break
         self.async_write_ha_state()
 
     async def async_send_command(self, command: Iterable[str], **kwargs: Any) -> None:
         """Send command to device."""
-        # kwargs is not used, but included to match the signature
-        del kwargs
+        # Extract optional parameters from kwargs
+        long_press = kwargs.get("long_press", False)
+        key_repeat = kwargs.get("repeat", 0)
+
         commands = list(command)
         if not commands:
             return
@@ -89,6 +105,8 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
                 await self.coordinator.api_client.send_key_action(
                     device_id=self._device_id,
                     key_name=api_command,
+                    long_press=long_press,
+                    key_repeat=key_repeat,
                 )
             else:
                 _LOGGER.warning("Unsupported command: %s", single_command)
