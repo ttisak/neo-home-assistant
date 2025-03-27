@@ -2,45 +2,48 @@
 
 from __future__ import annotations
 
-from homeassistant import config_entries
-from homeassistant.const import Platform
+import logging
+
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import (
-    ConfigEntryAuthFailed,
-    ConfigEntryError,
-    ConfigEntryNotReady,
-)
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 
 from .const import DOMAIN
+from .coordinator import NeoSmartboxUpdateCoordinator
 
-# For your initial PR, limit it to 1 platform.
-_PLATFORMS: list[Platform] = [Platform.LIGHT]
+_LOGGER = logging.getLogger(__name__)
+
+PLATFORMS: list[Platform] = [Platform.REMOTE]
 
 CONFIG_SCHEMA = cv.removed(DOMAIN, raise_if_present=False)
 
 
-type New_NameConfigEntry = config_entries.ConfigEntry
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up NEO Smartbox from a config entry."""
+    # Initialize runtime_data if not already set
+    if not entry.runtime_data:
+        entry.runtime_data = {}
 
+    api_key = entry.data[CONF_API_KEY]
 
-async def async_setup_entry(hass: HomeAssistant, entry: New_NameConfigEntry) -> bool:
-    """Set up my integration from a config entry."""
+    coordinator = NeoSmartboxUpdateCoordinator(hass, api_key)
 
-    a = 1
-    if a > 2:
-        raise ConfigEntryNotReady("Device is offline")
-    if a > 2:
-        raise ConfigEntryAuthFailed("Invalid authentication")
-    if a > 2:
-        raise ConfigEntryError("Account closed")
+    await coordinator.async_config_entry_first_refresh()
 
-    entry.runtime_data = {}
+    if not coordinator.data:
+        raise ConfigEntryNotReady("No devices found")
 
-    await hass.config_entries.async_forward_entry_setups(entry, _PLATFORMS)
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: New_NameConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, _PLATFORMS)
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        hass.data[DOMAIN].pop(entry.entry_id)
+
+    return unload_ok
