@@ -51,27 +51,44 @@
       }
 
       button {
-        background-color: #333;
-        color: #03a9f4;
+        background-color: #0288d1;
+        color: white;
         border: none;
         border-radius: 8px;
         padding: 12px;
         font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition:
+          background-color 0.2s,
+          transform 0.1s;
       }
 
       button:hover {
-        background-color: #444;
+        background-color: #01579b;
+      }
+
+      button:active {
+        transform: scale(0.95);
       }
 
       .button-big {
         grid-column: span 3;
-        background-color: #03a9f4;
-        color: white;
       }
 
-      .button-big:hover {
+      .power-button {
+        background-color: #e53935;
+      }
+
+      .power-button:hover {
+        background-color: #c62828;
+      }
+
+      .ok-button {
+        background-color: #29b6f6;
+        font-weight: bold;
+      }
+
+      .ok-button:hover {
         background-color: #0288d1;
       }
 
@@ -79,6 +96,11 @@
         margin: 16px 0 8px 0;
         font-size: 14px;
         color: #888;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: center;
       }
 
       #status {
@@ -115,22 +137,16 @@
 
       <div class="card">
         <div class="settings">
-          <label for="haUrl">Home Assistant URL:</label>
-          <input type="text" id="haUrl" value="http://localhost:8123" />
-
-          <label for="token">Long-lived Access Token:</label>
-          <input
-            type="password"
-            id="token"
-            placeholder="Enter your access token"
-          />
-
-          <label for="entity">Entity ID:</label>
+          <label for="deviceId">Device ID:</label>
           <input
             type="text"
-            id="entity"
-            value="remote.neo_smartbox_acb687eae8c8"
+            id="deviceId"
+            value="ACB687EAE8C8"
+            placeholder="e.g. ACB687EAE8C8"
           />
+
+          <label for="apiKey">API Key:</label>
+          <input type="password" id="apiKey" placeholder="Enter your API key" />
 
           <button class="button-big" onclick="saveSettings()">
             Save Settings
@@ -140,44 +156,58 @@
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Power</div>
+          <div class="card-title">NEO Smartbox Remote Control</div>
         </div>
+
+        <div class="section-title">Power</div>
         <div class="button-grid">
-          <button class="button-big" onclick="sendCommand('power')">
+          <button
+            class="button-big power-button"
+            onclick="sendCommand('Power')"
+          >
             Power
           </button>
         </div>
 
         <div class="section-title">Navigation</div>
         <div class="button-grid">
-          <button onclick="sendCommand('left')">Left</button>
-          <button onclick="sendCommand('up')">Up</button>
-          <button onclick="sendCommand('right')">Right</button>
-          <button onclick="sendCommand('back')">Back</button>
-          <button onclick="sendCommand('select')">OK</button>
-          <button onclick="sendCommand('home')">Home</button>
-          <button onclick="sendCommand('menu')">Menu</button>
-          <button onclick="sendCommand('down')">Down</button>
-          <button></button>
+          <div></div>
+          <button onclick="sendCommand('Up')">Up</button>
+          <div></div>
+
+          <button onclick="sendCommand('Left')">Left</button>
+          <button class="ok-button" onclick="sendCommand('Ok')">OK</button>
+          <button onclick="sendCommand('Right')">Right</button>
+
+          <div></div>
+          <button onclick="sendCommand('Down')">Down</button>
+          <div></div>
+        </div>
+
+        <div class="section-title">Control</div>
+        <div class="button-grid">
+          <button onclick="sendCommand('Back')">Back</button>
+          <button onclick="sendCommand('Home')">Home</button>
+          <button onclick="sendCommand('Menu')">Menu</button>
         </div>
 
         <div class="section-title">Media Control</div>
         <div class="button-grid">
-          <button onclick="sendCommand('rewind')">◀◀</button>
-          <button onclick="sendCommand('play_pause')">▶❚❚</button>
-          <button onclick="sendCommand('fast_forward')">▶▶</button>
+          <button onclick="sendCommand('Rewind')">⏪</button>
+          <button onclick="sendCommand('PlayPause')">⏯️</button>
+          <button onclick="sendCommand('FastForward')">⏩</button>
         </div>
 
         <div class="section-title">Volume</div>
         <div class="button-grid">
-          <button onclick="sendCommand('volume_down')">Vol -</button>
-          <button onclick="sendCommand('mute')">Mute</button>
-          <button onclick="sendCommand('volume_up')">Vol +</button>
+          <button onclick="sendCommand('VolumeDown')">Vol -</button>
+          <button onclick="sendCommand('Mute')">Mute</button>
+          <button onclick="sendCommand('VolumeUp')">Vol +</button>
         </div>
 
         <div class="section-title">Voice</div>
         <div class="button-grid">
-          <button class="button-big" onclick="sendCommand('voice_search')">
+          <button class="button-big" onclick="sendCommand('VoiceSearch')">
             Voice Search
           </button>
         </div>
@@ -189,25 +219,21 @@
     <script>
       // Load settings from localStorage when page loads
       document.addEventListener("DOMContentLoaded", function () {
-        const haUrl = localStorage.getItem("haUrl");
-        const token = localStorage.getItem("token");
-        const entity = localStorage.getItem("entity");
+        const deviceId = localStorage.getItem("deviceId");
+        const apiKey = localStorage.getItem("apiKey");
 
-        if (haUrl) document.getElementById("haUrl").value = haUrl;
-        if (token) document.getElementById("token").value = token;
-        if (entity) document.getElementById("entity").value = entity;
+        if (deviceId) document.getElementById("deviceId").value = deviceId;
+        if (apiKey) document.getElementById("apiKey").value = apiKey;
 
         updateStatus("Ready. Settings loaded from browser storage.");
       });
 
       function saveSettings() {
-        const haUrl = document.getElementById("haUrl").value;
-        const token = document.getElementById("token").value;
-        const entity = document.getElementById("entity").value;
+        const deviceId = document.getElementById("deviceId").value;
+        const apiKey = document.getElementById("apiKey").value;
 
-        localStorage.setItem("haUrl", haUrl);
-        localStorage.setItem("token", token);
-        localStorage.setItem("entity", entity);
+        localStorage.setItem("deviceId", deviceId);
+        localStorage.setItem("apiKey", apiKey);
 
         updateStatus("Settings saved to browser storage.");
       }
@@ -217,39 +243,49 @@
         status.textContent = message;
       }
 
-      function sendCommand(command) {
-        const haUrl = document.getElementById("haUrl").value;
-        const token = document.getElementById("token").value;
-        const entity = document.getElementById("entity").value;
+      function sendCommand(keyName) {
+        const deviceId = document.getElementById("deviceId").value;
+        const apiKey = document.getElementById("apiKey").value;
 
-        if (!haUrl || !token || !entity) {
-          updateStatus("Error: Please fill in all settings fields.");
+        if (!deviceId || !apiKey) {
+          updateStatus("Error: Please fill in Device ID and API Key fields.");
           return;
         }
 
-        updateStatus(`Sending command: ${command} to ${entity}...`);
+        updateStatus(`Sending command: ${keyName} to device ${deviceId}...`);
 
-        fetch(`${haUrl}/api/services/remote/send_command`, {
+        const apiUrl =
+          "https://stargate.telekom.si/api/titan.tv.CompanionService/SendKeyAction";
+
+        const payload = {
+          device_id: deviceId,
+          key_name: keyName,
+          key_repeat: 0,
+          long_press: true,
+        };
+
+        fetch(apiUrl, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            Authorization: `APIGW-AUTH-TOK ${apiKey}`,
           },
-          body: JSON.stringify({
-            entity_id: entity,
-            command: command,
-          }),
+          body: JSON.stringify(payload),
         })
           .then((response) => {
             if (response.ok) {
-              updateStatus(`Command '${command}' sent successfully.`);
+              updateStatus(`Command '${keyName}' sent successfully.`);
+              return response.text();
             } else {
-              response.text().then((text) => {
-                updateStatus(
-                  `Error: ${response.status} ${response.statusText} - ${text}`,
+              return response.text().then((text) => {
+                throw new Error(
+                  `${response.status} ${response.statusText} - ${text}`,
                 );
               });
             }
+          })
+          .then((data) => {
+            console.log("Success:", data);
           })
           .catch((error) => {
             updateStatus(`Error: ${error.message}`);

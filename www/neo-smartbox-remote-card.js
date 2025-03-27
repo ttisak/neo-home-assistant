@@ -51,112 +51,200 @@ class NeoSmartboxRemoteCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          --primary-color: var(--primary-color, #03a9f4);
-          --text-primary-color: var(--text-primary-color, white);
-          --card-background-color: var(--card-background-color, var(--paper-card-background-color, white));
+          --neo-primary: #0288d1;         /* NEO App blue */
+          --neo-secondary: #01579b;       /* Darker blue for hover */
+          --neo-accent: #29b6f6;          /* Lighter blue for select button */
+          --neo-text: white;
+          --neo-background: var(--card-background-color, var(--ha-card-background, #1c1c1c));
+          --neo-card-radius: var(--ha-card-border-radius, 4px);
         }
-        ha-card {
+
+        .card {
+          background-color: var(--neo-background);
+          border-radius: var(--neo-card-radius);
+          color: var(--primary-text-color, white);
+          box-shadow: var(--ha-card-box-shadow, 0 2px 2px rgba(0,0,0,0.24));
           padding: 16px;
-          color: var(--primary-text-color);
+          font-family: var(--primary-font-family, Roboto, sans-serif);
         }
+
         .remote {
           display: flex;
           flex-direction: column;
           align-items: center;
         }
+
         .title {
-          font-size: 1.2em;
-          font-weight: bold;
+          font-size: 1.5em;
+          font-weight: 500;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+
+        .status {
+          font-size: 0.9em;
+          opacity: 0.8;
           margin-bottom: 16px;
         }
+
         .button-row {
           display: flex;
           margin: 8px 0;
           gap: 8px;
+          justify-content: center;
+          width: 100%;
         }
+
         button {
           min-width: 60px;
           height: 40px;
-          border-radius: 4px;
-          background-color: var(--primary-color);
-          color: var(--text-primary-color);
+          border-radius: 8px;
+          background-color: var(--neo-primary);
+          color: var(--neo-text);
           border: none;
           cursor: pointer;
           font-size: 14px;
+          transition: background-color 0.2s ease, transform 0.1s ease;
+          font-weight: 500;
         }
-        .row-label {
+
+        button:hover {
+          background-color: var(--neo-secondary);
+        }
+
+        button:active {
+          transform: scale(0.95);
+        }
+
+        .section {
+          width: 100%;
+          margin: 16px 0 8px 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          padding-top: 16px;
+        }
+
+        .section-title {
           width: 100%;
           text-align: center;
-          margin: 8px 0;
+          margin-bottom: 12px;
+          font-weight: 500;
+          font-size: 0.9em;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
           opacity: 0.7;
         }
+
         .dpad {
           display: grid;
           grid-template-columns: repeat(3, 60px);
           grid-template-rows: repeat(3, 60px);
           gap: 8px;
         }
+
         .center-button {
-          background-color: var(--accent-color, #ff9800);
+          background-color: var(--neo-accent);
+          font-weight: bold;
+        }
+
+        .center-button:hover {
+          background-color: var(--neo-primary);
+        }
+
+        .power-button {
+          background-color: #e53935;  /* Red power button */
+        }
+
+        .power-button:hover {
+          background-color: #c62828;
+        }
+
+        .media-button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: 1;
+        }
+
+        .voice-button {
+          width: 100%;
+          height: 48px;
+          border-radius: 24px;
         }
       </style>
-      <ha-card>
+
+      <div class="card">
         <div class="remote">
           <div class="title">${name}</div>
+          <div class="status">${state ? state.state : "unavailable"}</div>
 
-          <div class="row-label">Power</div>
-          <div class="button-row">
-            <button @click="${() => this._sendCommand("power")}">Power</button>
+          <div class="section">
+            <div class="section-title">Power</div>
+            <div class="button-row">
+              <button class="power-button" @click="${() =>
+                this._sendCommand("power")}">Power</button>
+            </div>
           </div>
 
-          <div class="row-label">Navigation</div>
-          <div class="dpad">
-            <div></div>
-            <button @click="${() => this._sendCommand("up")}">Up</button>
-            <div></div>
+          <div class="section">
+            <div class="section-title">Navigation</div>
+            <div class="dpad">
+              <div></div>
+              <button @click="${() => this._sendCommand("up")}">Up</button>
+              <div></div>
 
-            <button @click="${() => this._sendCommand("left")}">Left</button>
-            <button class="center-button" @click="${() =>
-              this._sendCommand("select")}">OK</button>
-            <button @click="${() => this._sendCommand("right")}">Right</button>
+              <button @click="${() => this._sendCommand("left")}">Left</button>
+              <button class="center-button" @click="${() =>
+                this._sendCommand("select")}">OK</button>
+              <button @click="${() =>
+                this._sendCommand("right")}">Right</button>
 
-            <div></div>
-            <button @click="${() => this._sendCommand("down")}">Down</button>
-            <div></div>
+              <div></div>
+              <button @click="${() => this._sendCommand("down")}">Down</button>
+              <div></div>
+            </div>
           </div>
 
-          <div class="row-label">Control</div>
-          <div class="button-row">
-            <button @click="${() => this._sendCommand("back")}">Back</button>
-            <button @click="${() => this._sendCommand("home")}">Home</button>
-            <button @click="${() => this._sendCommand("menu")}">Menu</button>
+          <div class="section">
+            <div class="section-title">Control</div>
+            <div class="button-row">
+              <button @click="${() => this._sendCommand("back")}">Back</button>
+              <button @click="${() => this._sendCommand("home")}">Home</button>
+              <button @click="${() => this._sendCommand("menu")}">Menu</button>
+            </div>
           </div>
 
-          <div class="row-label">Volume</div>
-          <div class="button-row">
-            <button @click="${() =>
-              this._sendCommand("volume_down")}">Vol -</button>
-            <button @click="${() => this._sendCommand("mute")}">Mute</button>
-            <button @click="${() =>
-              this._sendCommand("volume_up")}">Vol +</button>
+          <div class="section">
+            <div class="section-title">Volume</div>
+            <div class="button-row">
+              <button @click="${() =>
+                this._sendCommand("volume_down")}">Vol -</button>
+              <button @click="${() => this._sendCommand("mute")}">Mute</button>
+              <button @click="${() =>
+                this._sendCommand("volume_up")}">Vol +</button>
+            </div>
           </div>
 
-          <div class="row-label">Media</div>
-          <div class="button-row">
-            <button @click="${() => this._sendCommand("rewind")}">⏪</button>
-            <button @click="${() =>
-              this._sendCommand("play_pause")}">⏯️</button>
-            <button @click="${() =>
-              this._sendCommand("fast_forward")}">⏩</button>
+          <div class="section">
+            <div class="section-title">Media</div>
+            <div class="button-row">
+              <button class="media-button" @click="${() =>
+                this._sendCommand("rewind")}">⏪</button>
+              <button class="media-button" @click="${() =>
+                this._sendCommand("play_pause")}">⏯️</button>
+              <button class="media-button" @click="${() =>
+                this._sendCommand("fast_forward")}">⏩</button>
+            </div>
           </div>
 
-          <div class="row-label">Voice</div>
-          <div class="button-row">
-            <button @click="${() =>
-              this._sendCommand("voice_search")}">Voice Search</button>
+          <div class="section">
+            <div class="section-title">Voice</div>
+            <div class="button-row">
+              <button class="voice-button" @click="${() =>
+                this._sendCommand("voice_search")}">Voice Search</button>
+            </div>
           </div>
         </div>
-      </ha-card>
+      </div>
     `;
   }
 
