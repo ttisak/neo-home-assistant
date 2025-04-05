@@ -93,6 +93,8 @@ class NeoSmartboxApiClient:
                 "long_press": long_press,
             }
 
+            _LOGGER.info("Sending command: %s", payload)
+
             response = await self.session.post(
                 API_SEND_KEY_ACTION,
                 headers=self.headers,

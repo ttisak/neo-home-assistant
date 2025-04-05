@@ -15,49 +15,44 @@ CONF_API_KEY: Final = "api_key"
 # Data update interval (in seconds)
 UPDATE_INTERVAL: Final = 60  # Cloud polling minimum
 
-# Remote commands
+# Remote commands for NEO Smartbox
 REMOTE_COMMANDS = {
-    "home": "Home",
     "power": "Power",
-    "volume_up": "VolumeUp",
+    "rewind": "Rewind",
+    "play_pause": "Play",
+    "forward": "Forward",
+    "up": "CursorUp",
+    "down": "CursorDown",
+    "left": "CursorLeft",
+    "right": "CursorRight",
+    "ok": "Select",
+    "back": "Back",
+    "home": "Home",
+    "menu": "TvGuide",
     "volume_down": "VolumeDown",
+    "volume_mute": "VolumeMute",
+    "volume_up": "VolumeUp",
     "channel_up": "ChannelUp",
     "channel_down": "ChannelDown",
-    "right": "Right",
-    "left": "Left",
-    "up": "Up",
-    "down": "Down",
-    "select": "Ok",
-    "back": "Back",
-    "guide": "Guide",
-    "menu": "Menu",
-    "mute": "Mute",
-    "play_pause": "PlayPause",
-    "rewind": "Rewind",
-    "fast_forward": "FastForward",
-    "voice_search": "VoiceSearch",  # Added for voice search functionality
-    # Add any additional commands that may be needed
 }
 
 # NEO app command reference (for UI implementation)
 NEO_APP_COMMANDS = {
     "power": "Power on/off the device",
-    "home": "Return to home screen",
-    "menu": "Open menu",
-    "back": "Go back",
+    "rewind": "Rewind media",
+    "play_pause": "Play or pause media",
+    "forward": "Fast forward media",
     "up": "Navigate up",
     "down": "Navigate down",
     "left": "Navigate left",
     "right": "Navigate right",
-    "select": "Select (OK)",
-    "volume_up": "Increase volume",
+    "ok": "Select (OK)",
+    "back": "Go back",
+    "home": "Return to home screen",
+    "menu": "Open guide",
     "volume_down": "Decrease volume",
+    "volume_mute": "Mute/unmute audio",
+    "volume_up": "Increase volume",
     "channel_up": "Next channel",
     "channel_down": "Previous channel",
-    "mute": "Mute audio",
-    "play_pause": "Play or pause media",
-    "rewind": "Rewind media",
-    "fast_forward": "Fast forward media",
-    "guide": "Open guide",
-    "voice_search": "Activate voice search",
 }
