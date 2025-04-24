@@ -1,0 +1,7 @@
+{
+  "services": {
+    "remote_key_action": {
+      "service": "mdi:remote-tv"
+    }
+  }
+}

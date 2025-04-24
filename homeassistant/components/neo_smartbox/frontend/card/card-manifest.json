@@ -1,0 +1,8 @@
+{
+  "name": "NEO Smartbox Remote Card",
+  "description": "A custom card to control NEO Smartbox devices",
+  "type": "js",
+  "version": "1.0.0",
+  "author": "@ttisak",
+  "module_url": "/static/neo_smartbox-card.js"
+}

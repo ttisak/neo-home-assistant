@@ -1,0 +1,33 @@
+# Exclude everything by default
+*
+
+# Explicitly include the neo_smartbox integration
+!homeassistant/
+!homeassistant/components/
+!homeassistant/components/neo_smartbox/
+!homeassistant/components/neo_smartbox/**
+
+# Include tests for the integration
+!tests/
+!tests/components/
+!tests/components/neo_smartbox/
+!tests/components/neo_smartbox/**
+
+# Include required configuration files
+!config/
+!config/**
+
+# Include project configuration files
+!.github/
+!*.yaml
+!*.json
+!*.md
+
+
+# Include any frontend/UI directories needed for development
+!www/
+!www/**
+
+
+# Include this file
+!.cursorignore

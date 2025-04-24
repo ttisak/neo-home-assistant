@@ -1,0 +1,36 @@
+remote_key_action:
+  fields:
+    device_id:
+      example: "12345"
+      required: true
+      selector:
+        device:
+          integration: neo_smartbox
+    action:
+      example: "power"
+      required: true
+      selector:
+        select:
+          options:
+            - power
+            - rewind
+            - play_pause
+            - forward
+            - up
+            - down
+            - left
+            - right
+            - ok
+            - back
+            - home
+            - menu
+            - volume_down
+            - volume_mute
+            - volume_up
+            - channel_up
+            - channel_down
+    long_press:
+      required: false
+      default: false
+      selector:
+        boolean:

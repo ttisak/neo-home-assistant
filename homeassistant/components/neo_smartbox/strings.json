@@ -2,6 +2,8 @@
   "config": {
     "step": {
       "user": {
+        "title": "Connect to NEO Smartbox",
+        "description": "Enter your NEO Smartbox API Key",
         "data": {
           "host": "[%key:common::config_flow::data::host%]",
           "username": "[%key:common::config_flow::data::username%]",
@@ -16,6 +18,26 @@
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "services": {
+    "remote_key_action": {
+      "name": "Remote key action",
+      "description": "Send a remote control key action to a Neo Smartbox device.",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The device ID of the Neo Smartbox device."
+        },
+        "action": {
+          "name": "Action",
+          "description": "The action to perform."
+        },
+        "long_press": {
+          "name": "Long press",
+          "description": "Whether to perform a long press."
+        }
+      }
     }
   }
 }
