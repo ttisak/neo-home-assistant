@@ -347,7 +347,7 @@ console.log("NEO Smartbox remote card script is loading...");
               </svg>
             </div>
             <div class="media-button" @click="${() =>
-              this._handleAction("fast_forward")}">
+              this._handleAction("forward")}">
               <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><g><rect fill="none" height="24" width="24"/><rect fill="none" height="24" width="24"/><rect fill="none" height="24" width="24"/></g><g><g/>
                 <path d="M15,9.86L18.03,12L15,14.14V9.86 M6,9.86L9.03,12L6,14.14V9.86 M13,6v12l8.5-6L13,6L13,6z M4,6v12l8.5-6L4,6L4,6z"/></g>
               </svg>
@@ -364,8 +364,7 @@ console.log("NEO Smartbox remote card script is loading...");
               this._handleAction("left")}">
               <svg viewBox="0 0 24 24"><path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"></path></svg>
             </div>
-            <div class="dpad-center" @click="${() =>
-              this._handleAction("select")}">
+            <div class="dpad-center" @click="${() => this._handleAction("ok")}">
               <div class="dpad-center-text">ok</div>
             </div>
             <div class="dpad-button" style="grid-column: 3; grid-row: 2;" @click="${() =>
@@ -450,7 +449,7 @@ console.log("NEO Smartbox remote card script is loading...");
       this.shadowRoot
         .querySelector(".media-button:last-child")
         ?.addEventListener("click", () => {
-          this._handleAction("fast_forward");
+          this._handleAction("forward");
         });
 
       // D-Pad buttons
@@ -470,7 +469,7 @@ console.log("NEO Smartbox remote card script is loading...");
       this.shadowRoot
         .querySelector(".dpad-center")
         ?.addEventListener("click", () => {
-          this._handleAction("select");
+          this._handleAction("ok");
         });
 
       // Navigation buttons
