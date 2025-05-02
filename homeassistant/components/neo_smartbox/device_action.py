@@ -8,6 +8,7 @@ from typing import Any
 
 import voluptuous as vol
 
+from homeassistant.components.device_automation import async_validate_entity_schema
 from homeassistant.const import CONF_DEVICE_ID, CONF_DOMAIN, CONF_TYPE
 from homeassistant.core import Context, HomeAssistant
 from homeassistant.helpers import config_validation as cv, device_registry as dr
@@ -30,59 +31,64 @@ ACTION_SCHEMA = cv.DEVICE_ACTION_BASE_SCHEMA.extend(
 )
 
 
-async def async_get_actions(
-    hass: HomeAssistant, device_id: str
-) -> list[dict[str, Any]]:
-    """List device actions for NEO Smartbox devices."""
-    actions: list[dict[str, Any]] = []
-    device_registry = dr.async_get(hass)
+ATTR_LONG_PRESS = "long_press"
 
-    device = device_registry.async_get(device_id)
-    if device is None:
-        return actions
-
-    # Check if device belongs to this integration
-    found = False
-    for identifier in device.identifiers:
-        if identifier[0] == DOMAIN:
-            found = True
-            break
-
-    if not found:
-        return actions
-
-    # Add all available remote actions
-    for action_type in ACTION_TYPES:
-        # Regular press
-        actions.append(
-            {
-                CONF_DEVICE_ID: device_id,
-                CONF_DOMAIN: DOMAIN,
-                CONF_TYPE: action_type,
-                CONF_LONG_PRESS: False,
-            }
-        )
-        # Long press
-        actions.append(
-            {
-                CONF_DEVICE_ID: device_id,
-                CONF_DOMAIN: DOMAIN,
-                CONF_TYPE: action_type,
-                CONF_LONG_PRESS: True,
-            }
-        )
-
-    return actions
+ACTION_SCHEMA = cv.DEVICE_ACTION_BASE_SCHEMA.extend(
+    {
+        vol.Required(CONF_TYPE): vol.In(NEO_APP_COMMANDS.keys()),
+        vol.Required(ATTR_LONG_PRESS, default=False): cv.boolean,
+    }
+)
 
 
 async def async_validate_action_config(
     hass: HomeAssistant, config: ConfigType
 ) -> ConfigType:
     """Validate config."""
-    if CONF_TYPE not in config:
-        raise vol.Invalid(f"Missing required property '{CONF_TYPE}'")
+    return async_validate_entity_schema(hass, config, ACTION_SCHEMA)
 
-    return ACTION_SCHEMA(config)
+
+async def async_get_actions(
+    hass: HomeAssistant, device_id: str
+) -> list[dict[str, Any]]:
+    """List device actions for NEO Smartbox devices."""
+    registry = dr.async_get(hass)
+    device = registry.async_get(device_id)
+
+    # A list of actions that can be performed on the device
+    actions: list[dict[str, Any]] = []
+
+    # Check if device belongs to this integration
+    if device and any(
+        entry_id
+        for entry_id in device.config_entries
+        if entry_id in hass.data.get(DOMAIN, {})
+    ):
+        # Add all actions for this device
+        actions.extend(
+            {
+                CONF_DEVICE_ID: device_id,
+                CONF_DOMAIN: DOMAIN,
+                CONF_TYPE: action_type,
+            }
+            for action_type in NEO_APP_COMMANDS
+        )
+
+    return actions
+
+
+async def async_get_action_capabilities(
+    hass: HomeAssistant, config: ConfigType
+) -> dict[str, vol.Schema]:
+    """List action capabilities."""
+
+    return {
+        "extra_fields": vol.Schema(
+            {
+                vol.Required(ATTR_LONG_PRESS, default=False): cv.boolean,
+            }
+        )
+    }
 
 
 async def async_call_action_from_config(
@@ -92,9 +98,10 @@ async def async_call_action_from_config(
     context: Context | None,
 ) -> None:
     """Execute a device action."""
+
     service_data = {
-        "entity_ids": [config[CONF_DEVICE_ID]],
-        "action": action_type,
+        "device_id": [config[CONF_DEVICE_ID]],
+        "action": config[CONF_TYPE],
         "long_press": config.get(CONF_LONG_PRESS, False),
     }
 

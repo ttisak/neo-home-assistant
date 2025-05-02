@@ -1,4 +1,28 @@
 {
+  "device_automation": {
+    "action_type": {
+      "power": "Power on/off the device",
+      "rewind": "Rewind media",
+      "play_pause": "Play or pause media",
+      "forward": "Fast forward media",
+      "up": "Navigate up",
+      "down": "Navigate down",
+      "left": "Navigate left",
+      "right": "Navigate right",
+      "ok": "Select (OK)",
+      "back": "Go back",
+      "home": "Return to home screen",
+      "menu": "Open guide",
+      "volume_down": "Decrease volume",
+      "volume_mute": "Mute/unmute audio",
+      "volume_up": "Increase volume",
+      "channel_up": "Next channel",
+      "channel_down": "Previous channel"
+    },
+    "extra_fields": {
+      "long_press": "Long press"
+    }
+  },
   "config": {
     "step": {
       "user": {
