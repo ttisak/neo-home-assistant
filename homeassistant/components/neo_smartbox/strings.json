@@ -20,18 +20,37 @@
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
     }
   },
+  "selector": {
+    "remote_key_actions": {
+      "options": {
+        "power": "Power on/off the device",
+        "rewind": "Rewind media",
+        "play_pause": "Play or pause media",
+        "forward": "Fast forward media",
+        "up": "Navigate up",
+        "down": "Navigate down",
+        "left": "Navigate left",
+        "right": "Navigate right",
+        "ok": "Select (OK)",
+        "back": "Go back",
+        "home": "Return to home screen",
+        "menu": "Open guide",
+        "volume_down": "Decrease volume",
+        "volume_mute": "Mute/unmute audio",
+        "volume_up": "Increase volume",
+        "channel_up": "Next channel",
+        "channel_down": "Previous channel"
+      }
+    }
+  },
   "services": {
     "remote_key_action": {
-      "name": "Remote key action",
-      "description": "Send a remote control key action to a Neo Smartbox device.",
+      "name": "Remote Key Action",
+      "description": "Send a remote key action to the NEO Smartbox.",
       "fields": {
-        "device_id": {
-          "name": "Device ID",
-          "description": "The device ID of the Neo Smartbox device."
-        },
         "action": {
           "name": "Action",
-          "description": "The action to perform."
+          "description": "The action to perform on the NEO Smartbox."
         },
         "long_press": {
           "name": "Long press",

@@ -41,7 +41,7 @@ class NeoSmartboxUpdateCoordinator(DataUpdateCoordinator[list[NeoSmartboxDevice]
     async def _async_update_data(self) -> list[NeoSmartboxDevice]:
         """Fetch data from API endpoint."""
         try:
-            return await self.api_client.get_devices()
+            return await self.api_client.get_all_devices()
         except aiohttp.ClientConnectionError as err:
             _LOGGER.error("Connection error: %s", err)
             raise UpdateFailed(f"Connection error: {err}") from err
@@ -49,7 +49,7 @@ class NeoSmartboxUpdateCoordinator(DataUpdateCoordinator[list[NeoSmartboxDevice]
             if "Session is closed" in str(err):
                 _LOGGER.warning("Session closed, recreating API client")
                 self.api_client = self._create_api_client()
-                return await self.api_client.get_devices()
+                return await self.api_client.get_all_devices()
             _LOGGER.error("Error communicating with API: %s", err)
             raise UpdateFailed(f"Error communicating with API: {err}") from err
         except Exception as err:

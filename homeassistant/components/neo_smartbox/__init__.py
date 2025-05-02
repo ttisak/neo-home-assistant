@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import voluptuous as vol
 
@@ -10,8 +11,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers import (
+    config_validation as cv,
+    device_registry as dr,
+    entity_registry as er,
+)
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.util.read_only_dict import ReadOnlyDict
 
 from . import frontend
 from .const import DOMAIN, NEO_APP_COMMANDS, REMOTE_COMMANDS
@@ -26,7 +32,6 @@ CONFIG_SCHEMA = cv.removed(DOMAIN, raise_if_present=False)
 
 SERVICE_SCHEMA = vol.Schema(
     {
-        vol.Required("device_id"): cv.string,
         vol.Required("action"): vol.In(NEO_APP_COMMANDS.keys()),
         vol.Required("long_press", default=False): cv.boolean,
     }
@@ -43,6 +48,65 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await frontend.async_setup(hass)
 
     return True
+
+
+def get_devices_from_target(
+    hass: HomeAssistant, data: ReadOnlyDict[str, Any]
+) -> list[str]:
+    """Get devices from target."""
+
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+
+    ha_device_ids = data.get("device_id", [])
+
+    for entity_id in data.get("entity_id", []):
+        entry = entity_registry.async_get(entity_id)
+
+        if not entry:
+            _LOGGER.error("Entity not found in entity registry")
+            continue
+
+        ha_device_id = entry.device_id
+        if not ha_device_id:
+            _LOGGER.error("Device ID not found in entity registry")
+            continue
+
+        ha_device_ids.append(ha_device_id)
+
+    for label_id in data.get("label_id", []):
+        ha_devices = device_registry.devices.get_devices_for_label(label_id)
+
+        device_ids = [
+            device.id for device in ha_devices if device.id not in ha_device_ids
+        ]
+
+        ha_device_ids.extend(device_ids)
+
+    for area_id in data.get("area_id", []):
+        ha_devices = device_registry.devices.get_devices_for_area_id(area_id)
+
+        device_ids = [
+            device.id for device in ha_devices if device.id not in ha_device_ids
+        ]
+
+        ha_device_ids.extend(device_ids)
+
+    box_device_ids = []
+
+    for device_id in ha_device_ids:
+        device = device_registry.async_get(device_id)
+
+        if not device:
+            _LOGGER.error("Device not found in device registry")
+            continue
+
+        _, box_device_id = next(iter(device.identifiers))
+
+        if box_device_id not in box_device_ids:
+            box_device_ids.append(box_device_id)
+
+    return box_device_ids
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -66,41 +130,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def handle_custom_action(call: ServiceCall) -> None:
         """Handle the custom action service."""
 
-        device_id: str | None = call.data.get("device_id", None)
         action_type: str | None = call.data.get("action", None)
 
         long_press: bool = call.data.get("long_press", False)
-
-        if not device_id:
-            _LOGGER.error("Device ID not found")
-            return
 
         if not action_type:
             _LOGGER.error("Action type not found")
             return
 
-        # Find the device's entry_id
-        device_registry = dr.async_get(hass)
-        device = device_registry.async_get(device_id)
+        box_device_ids = get_devices_from_target(hass, call.data)
 
-        if not device:
-            _LOGGER.error("Device not found in device registry")
-            return
+        for box_device_id in box_device_ids:
+            if not box_device_id:
+                _LOGGER.error("Device not found in device registry")
+                return
 
-        _, box_device_id = next(iter(device.identifiers))
-
-        await coordinator.api_client.send_key_action(
-            device_id=box_device_id,
-            key_name=REMOTE_COMMANDS[action_type],
-            long_press=long_press,
-            key_repeat=0,
-        )
+            await coordinator.api_client.send_key_action(
+                device_id=box_device_id,
+                key_name=REMOTE_COMMANDS[action_type],
+                long_press=long_press,
+                key_repeat=0,
+            )
 
     hass.services.async_register(
         DOMAIN,
         SERVICE_CUSTOM_ACTION,
         handle_custom_action,
-        schema=SERVICE_SCHEMA,
+        # schema=SERVICE_SCHEMA,
     )
 
     # Forward entry setup to platforms

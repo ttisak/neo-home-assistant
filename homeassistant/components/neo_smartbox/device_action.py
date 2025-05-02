@@ -93,8 +93,8 @@ async def async_call_action_from_config(
 ) -> None:
     """Execute a device action."""
     service_data = {
-        "device_id": config[CONF_DEVICE_ID],
-        "action": config[CONF_TYPE],
+        "entity_ids": [config[CONF_DEVICE_ID]],
+        "action": action_type,
         "long_press": config.get(CONF_LONG_PRESS, False),
     }
 

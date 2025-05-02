@@ -1,16 +1,16 @@
 remote_key_action:
+  target:
+    entity:
+      integration: neo_smartbox
+      domain: remote
+    device:
+      integration: neo_smartbox
   fields:
-    device_id:
-      example: "12345"
-      required: true
-      selector:
-        device:
-          integration: neo_smartbox
     action:
-      example: "power"
       required: true
       selector:
         select:
+          translation_key: "remote_key_actions"
           options:
             - power
             - rewind

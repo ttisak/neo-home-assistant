@@ -17,9 +17,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, NEO_APP_COMMANDS, REMOTE_COMMANDS
+from .const import DOMAIN, REMOTE_COMMANDS
 from .coordinator import NeoSmartboxUpdateCoordinator
-from .models import NeoSmartboxDevice
+from .models import NeoDeviceType, NeoSmartboxDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,12 +56,11 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
         """Initialize the NEO Smartbox remote."""
         super().__init__(coordinator)
         self._device = device
-        self.device_id = device.device_id
+        self.device_id = device.id
         self._attr_unique_id = f"{DOMAIN}_{self.device_id}"
         self._attr_name = device.name
-        self._attr_is_on = device.is_available
-        self._attr_commands_encoding = list(NEO_APP_COMMANDS.keys())
-        self._attr_current_activity = "Idle" if device.is_available else None
+        self._attr_is_on = True
+        # self._attr_commands_encoding = list(NEO_APP_COMMANDS.keys())
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -70,7 +69,9 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
             "identifiers": {(DOMAIN, self.device_id)},
             "name": self._device.name,
             "manufacturer": "Telekom Slovenia",
-            "model": "NEO Smartbox",
+            "model": "NEO Smartbox"
+            if self._device.type == NeoDeviceType.STB
+            else "NEO TV Lite",
         }
 
     @property
@@ -79,11 +80,16 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
         return True
 
     @property
+    def commands(self) -> list[str]:
+        """Return a list of supported commands."""
+        return list(REMOTE_COMMANDS.keys())
+
+    @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         return {
-            "available_commands": list(NEO_APP_COMMANDS.keys()),
-            "command_descriptions": NEO_APP_COMMANDS,
+            # "available_commands": list(NEO_APP_COMMANDS.keys()),
+            # "command_descriptions": NEO_APP_COMMANDS,
             "device_id": self.device_id,
         }
 
@@ -91,10 +97,10 @@ class NeoSmartboxRemote(CoordinatorEntity[NeoSmartboxUpdateCoordinator], RemoteE
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         for device in self.coordinator.data:
-            if device.device_id == self.device_id:
+            if device.id == self.device_id:
                 self._device = device
-                self._attr_is_on = device.is_available
-                self._attr_current_activity = "Idle" if device.is_available else None
+                self._attr_is_on = True
+                self._attr_current_activity = None
                 break
         self.async_write_ha_state()
 
