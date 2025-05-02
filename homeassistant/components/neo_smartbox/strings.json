@@ -1,6 +1,8 @@
 {
   "device_automation": {
     "action_type": {
+      "navigate_to": "Navigate to ...",
+      "navigate_to_live_channel": "Navigate to live channel ...",
       "power": "Power on/off the device",
       "rewind": "Rewind media",
       "play_pause": "Play or pause media",
@@ -20,7 +22,9 @@
       "channel_down": "Previous channel"
     },
     "extra_fields": {
-      "long_press": "Long press"
+      "long_press": "Long press",
+      "destination": "Destination",
+      "channel_id": "Channel"
     }
   },
   "config": {
@@ -79,6 +83,36 @@
         "long_press": {
           "name": "Long press",
           "description": "Whether to perform a long press."
+        }
+      }
+    },
+    "navigate_to_live_channel": {
+      "name": "Navigate to Live Channel",
+      "description": "Navigate to a specific live channel on the NEO Smartbox.",
+      "fields": {
+        "channel_id": {
+          "name": "Channel",
+          "description": "The channel to navigate to."
+        }
+      }
+    },
+    "navigate_to_destination": {
+      "name": "Navigate to Destination",
+      "description": "Navigate to a specific destination on the NEO Smartbox.",
+      "fields": {
+        "destination": {
+          "name": "Destination",
+          "description": "The destination to navigate to."
+        }
+      }
+    },
+    "navigate_to_custom_action": {
+      "name": "Navigate to Custom Action",
+      "description": "Navigate to a specific custom action on the NEO Smartbox.",
+      "fields": {
+        "action": {
+          "name": "Action",
+          "description": "The destination to navigate to."
         }
       }
     }

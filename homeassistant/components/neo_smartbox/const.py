@@ -12,6 +12,10 @@ API_GET_SMART_TV_LIST: Final = (
 )
 API_SEND_KEY_ACTION: Final = f"{API_BASE_URL}/titan.tv.CompanionService/SendKeyAction"
 
+API_ZAP_LIST: Final = f"{API_BASE_URL}/titan.tv.WebEpg/ZapList"
+
+API_NAVIGATE_ACTION: Final = f"{API_BASE_URL}/titan.tv.CompanionService/NavigateAction"
+
 # Configuration
 CONF_API_KEY: Final = "api_key"
 

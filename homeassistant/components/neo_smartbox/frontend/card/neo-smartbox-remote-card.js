@@ -25,10 +25,6 @@ console.log("NEO Smartbox remote card script is loading...");
 
     // Set card configuration
     setConfig(config) {
-      if (!config.entity) {
-        throw new Error("You need to define an entity");
-      }
-
       this.config = config;
       this.render();
     }
@@ -57,17 +53,8 @@ console.log("NEO Smartbox remote card script is loading...");
       const entityId = this.config.entity;
       const stateObj = this._hass.states[entityId];
 
-      if (!stateObj) {
-        this.shadowRoot.innerHTML = `
-        <ha-card>
-          <div class="not-found">Entity ${entityId} not found.</div>
-        </ha-card>
-      `;
-        return;
-      }
-
-      const available = stateObj.state !== "unavailable";
-      const deviceName = stateObj.attributes.friendly_name || entityId;
+      const deviceName =
+        stateObj?.attributes.friendly_name || entityId || "NEO Smartbox";
 
       this.shadowRoot.innerHTML = `
       <style>
@@ -516,5 +503,6 @@ console.log("NEO Smartbox remote card script is loading...");
     type: "neo-smartbox-remote-card",
     name: "NEO Smartbox Remote",
     description: "A card to control your NEO Smartbox device.",
+    preview: true,
   });
 })();

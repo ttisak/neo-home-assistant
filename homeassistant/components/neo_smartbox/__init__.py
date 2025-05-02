@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -20,7 +18,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util.read_only_dict import ReadOnlyDict
 
 from . import frontend
-from .const import DOMAIN, NEO_APP_COMMANDS, REMOTE_COMMANDS
+from .const import DOMAIN, REMOTE_COMMANDS
 from .coordinator import NeoSmartboxUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,14 +28,9 @@ PLATFORMS: list[Platform] = [Platform.REMOTE]
 
 CONFIG_SCHEMA = cv.removed(DOMAIN, raise_if_present=False)
 
-SERVICE_SCHEMA = vol.Schema(
-    {
-        vol.Required("action"): vol.In(NEO_APP_COMMANDS.keys()),
-        vol.Required("long_press", default=False): cv.boolean,
-    }
-)
-
-SERVICE_CUSTOM_ACTION = "remote_key_action"
+REMOTE_KEY_ACTION = "remote_key_action"
+NAVIGATE_TO_LIVE_CHANNEL = "navigate_to_live_channel"
+NAVIGATE_TO_CUSTOM_ACTION = "navigate_to_custom_action"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -127,7 +120,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
     # Register device actions service
-    async def handle_custom_action(call: ServiceCall) -> None:
+    async def handle_remote_key_action(call: ServiceCall) -> None:
         """Handle the custom action service."""
 
         action_type: str | None = call.data.get("action", None)
@@ -152,11 +145,64 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 key_repeat=0,
             )
 
+    async def handle_navigate_to_custom_action(call: ServiceCall) -> None:
+        """Handle the navigation to provided action."""
+
+        action_type: str | None = call.data.get("action", None)
+
+        if not action_type:
+            _LOGGER.error("Action type not found")
+            return
+
+        box_device_ids = get_devices_from_target(hass, call.data)
+
+        for box_device_id in box_device_ids:
+            if not box_device_id:
+                _LOGGER.error("Device not found in device registry")
+                return
+
+            await coordinator.api_client.navigate_action(
+                device_id=box_device_id,
+                action=action_type,
+            )
+
+    async def handle_navigate_to_live_channel(call: ServiceCall) -> None:
+        """Handle the navigation to provided action."""
+
+        channel_id: str | None = call.data.get("channel_id", None)
+
+        if not channel_id:
+            _LOGGER.error("Channel ID not found")
+            return
+
+        box_device_ids = get_devices_from_target(hass, call.data)
+
+        for box_device_id in box_device_ids:
+            if not box_device_id:
+                _LOGGER.error("Device not found in device registry")
+                return
+
+            await coordinator.api_client.navigate_action(
+                device_id=box_device_id,
+                action=f"app://player/livetv/id/{channel_id}",
+            )
+
     hass.services.async_register(
         DOMAIN,
-        SERVICE_CUSTOM_ACTION,
-        handle_custom_action,
-        # schema=SERVICE_SCHEMA,
+        REMOTE_KEY_ACTION,
+        handle_remote_key_action,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        NAVIGATE_TO_CUSTOM_ACTION,
+        handle_navigate_to_custom_action,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        NAVIGATE_TO_LIVE_CHANNEL,
+        handle_navigate_to_live_channel,
     )
 
     # Forward entry setup to platforms

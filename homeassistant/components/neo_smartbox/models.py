@@ -10,7 +10,13 @@ import aiohttp
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
-from .const import API_DEVICE_LIST, API_GET_SMART_TV_LIST, API_SEND_KEY_ACTION
+from .const import (
+    API_DEVICE_LIST,
+    API_GET_SMART_TV_LIST,
+    API_NAVIGATE_ACTION,
+    API_SEND_KEY_ACTION,
+    API_ZAP_LIST,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +35,18 @@ class NeoSmartboxDevice:
     id: str
     name: str
     type: NeoDeviceType
+
+
+@dataclass
+class TvChannel:
+    """TV channel representation."""
+
+    id: str
+    title: str
+    number: str
+    logo: str
+    favorite: bool
+    group: str
 
 
 class NeoSmartboxApiClient:
@@ -158,3 +176,68 @@ class NeoSmartboxApiClient:
             return False
         else:
             return True
+
+    async def navigate_action(self, device_id: str, action: str) -> bool:
+        """Send navigate action to device."""
+        try:
+            payload = {
+                "device_id": device_id,
+                "navigate_path": action,
+            }
+
+            _LOGGER.info("Sending command: %s", payload)
+
+            response = await self.session.post(
+                API_NAVIGATE_ACTION,
+                headers=self.headers,
+                json=payload,
+            )
+
+            if response.status == 403:
+                _LOGGER.error("Authentication error when sending command")
+                raise ConfigEntryAuthFailed("Invalid API key")
+
+            response.raise_for_status()
+        except aiohttp.ClientResponseError as err:
+            if err.status == 403:
+                _LOGGER.debug("Authentication error when sending command")
+                raise ConfigEntryAuthFailed("Invalid API key") from err
+            _LOGGER.debug("Error sending command: %s", err)
+            return False
+        else:
+            return True
+
+    async def get_channel_list(self) -> list[TvChannel]:
+        """Get channel list."""
+        try:
+            response = await self.session.get(
+                API_ZAP_LIST,
+                headers=self.headers,
+                json={},
+            )
+
+            if response.status == 403:
+                _LOGGER.error("Authentication error when getting channel list")
+                raise ConfigEntryAuthFailed("Invalid API key")
+
+            response.raise_for_status()
+            data = await response.json()
+
+            return [
+                TvChannel(
+                    id=item["channel"]["id"],
+                    title=item["channel"]["title"],
+                    number=item["channel"]["number"],
+                    logo=item["channel"]["logo"],
+                    favorite=item["channel"]["favorite"],
+                    group=item["channel"]["group"],
+                )
+                for item in data.get("data", [])
+            ]
+
+        except aiohttp.ClientResponseError as err:
+            if err.status == 403:
+                _LOGGER.error("Authentication error when getting channel list")
+                raise ConfigEntryAuthFailed("Invalid API key") from err
+            _LOGGER.error("Error getting channel list: %s", err)
+            raise
