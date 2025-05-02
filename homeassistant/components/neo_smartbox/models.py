@@ -3,26 +3,32 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 import logging
 
 import aiohttp
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
-from .const import API_DEVICE_LIST, API_SEND_KEY_ACTION
+from .const import API_DEVICE_LIST, API_GET_SMART_TV_LIST, API_SEND_KEY_ACTION
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class NeoDeviceType(Enum):
+    """Device types."""
+
+    STB = "dt_stb"
+    SMART_TV = "dt_tv"
 
 
 @dataclass
 class NeoSmartboxDevice:
     """NEO Smartbox device representation."""
 
+    id: str
     name: str
-    device_id: str
-    is_available: bool
-    oblo_id: str | None
-    oblo_secure_id: str | None
+    type: NeoDeviceType
 
 
 class NeoSmartboxApiClient:
@@ -43,11 +49,51 @@ class NeoSmartboxApiClient:
             "x-layout-id": "si_titan_flutter&platform=web",
         }
 
-    async def get_devices(self) -> list[NeoSmartboxDevice]:
-        """Get all available devices."""
+    async def get_all_devices(self) -> list[NeoSmartboxDevice]:
+        """Get all devices."""
+
+        stbs = await self._get_stb_list()
+        smart_tvs = await self._get_smart_tv_list()
+
+        return stbs + smart_tvs
+
+    async def _get_stb_list(self) -> list[NeoSmartboxDevice]:
+        """Get all STB devices."""
         try:
-            response = await self.session.post(
+            stbResponse = await self.session.post(
                 API_DEVICE_LIST,
+                headers=self.headers,
+                json={},
+            )
+
+            if stbResponse.status == 403:
+                _LOGGER.error("Authentication error when getting devices")
+                raise ConfigEntryAuthFailed("Invalid API key")
+
+            stbResponse.raise_for_status()
+            data = await stbResponse.json()
+
+            return [
+                NeoSmartboxDevice(
+                    id=item["device_id"],
+                    name=item["name"],
+                    type=NeoDeviceType.STB,
+                )
+                for item in data.get("items", [])
+            ]
+
+        except aiohttp.ClientResponseError as err:
+            if err.status == 403:
+                _LOGGER.error("Authentication error when getting devices")
+                raise ConfigEntryAuthFailed("Invalid API key") from err
+            _LOGGER.error("Error getting devices: %s", err)
+            raise
+
+    async def _get_smart_tv_list(self) -> list[NeoSmartboxDevice]:
+        """Get all Smart TVs."""
+        try:
+            response = await self.session.get(
+                API_GET_SMART_TV_LIST,
                 headers=self.headers,
                 json={},
             )
@@ -61,13 +107,11 @@ class NeoSmartboxApiClient:
 
             return [
                 NeoSmartboxDevice(
-                    name=item["name"],
-                    device_id=item["device_id"],
-                    is_available=item["is_available"],
-                    oblo_id=item.get("oblo_id", ""),
-                    oblo_secure_id=item.get("oblo_secure_id", ""),
+                    id=item["uuid"],
+                    name=item["device_name"],
+                    type=NeoDeviceType.SMART_TV,
                 )
-                for item in data.get("items", [])
+                for item in data.get("devices", [])
             ]
 
         except aiohttp.ClientResponseError as err:

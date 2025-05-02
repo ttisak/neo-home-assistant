@@ -7,6 +7,9 @@ DOMAIN: Final = "neo_smartbox"
 # API endpoints
 API_BASE_URL: Final = "https://stargate.telekom.si/api"
 API_DEVICE_LIST: Final = f"{API_BASE_URL}/titan.tv.CompanionService/DeviceList"
+API_GET_SMART_TV_LIST: Final = (
+    f"{API_BASE_URL}/titan.management.SelfCareService/GetSmartTVList"
+)
 API_SEND_KEY_ACTION: Final = f"{API_BASE_URL}/titan.tv.CompanionService/SendKeyAction"
 
 # Configuration

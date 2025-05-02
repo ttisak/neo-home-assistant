@@ -70,4 +70,4 @@ class NeoSmartboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Validate the API key by retrieving devices."""
         session = async_get_clientsession(self.hass)
         api_client = NeoSmartboxApiClient(api_key, session)
-        return await api_client.get_devices()
+        return await api_client.get_all_devices()
