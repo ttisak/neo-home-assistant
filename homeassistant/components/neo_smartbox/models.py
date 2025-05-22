@@ -61,8 +61,8 @@ class NeoSmartboxApiClient:
             "accept-language": "en-US,en;q=0.9,sl;q=0.8",
             "authorization": f"APIGW-AUTH-TOK {api_key}",
             "content-type": "application/json",
-            "origin": "https://www.neo.io",
-            "referer": "https://www.neo.io/",
+            "origin": "https://neo.io",
+            "referer": "https://neo.io",
             "user-agent": "HomeAssistant/NEOSmartboxIntegration",
             "x-layout-id": "si_titan_flutter&platform=web",
         }
