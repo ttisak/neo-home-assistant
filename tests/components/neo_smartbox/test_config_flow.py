@@ -1,145 +1,139 @@
-"""Test the NEO Smartbox config flow."""
+"""Tests for the NEO Smartbox config flow."""
 
 from unittest.mock import AsyncMock, patch
 
-from homeassistant import config_entries
-from homeassistant.components.neo_smartbox.config_flow import CannotConnect, InvalidAuth
+import aiohttp
+import pytest
+
 from homeassistant.components.neo_smartbox.const import DOMAIN
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.config_entries import SOURCE_USER
+from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
+from .test_data import API_KEY
 
-async def test_form(hass: HomeAssistant, mock_setup_entry: AsyncMock) -> None:
-    """Test we get the form."""
+pytestmark = pytest.mark.usefixtures("mock_setup_entry")
+
+
+async def test_user_flow(hass: HomeAssistant, mock_api_client: AsyncMock) -> None:
+    """Test the user initiated config flow."""
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN, context={"source": SOURCE_USER}
     )
-    assert result["type"] is FlowResultType.FORM
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
     assert result["errors"] == {}
 
     with patch(
-        "homeassistant.components.neo_smartbox.config_flow.PlaceholderHub.authenticate",
-        return_value=True,
+        "homeassistant.components.neo_smartbox.config_flow.NeoSmartboxApiClient",
+        return_value=mock_api_client,
     ):
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_HOST: "1.1.1.1",
-                CONF_USERNAME: "test-username",
-                CONF_PASSWORD: "test-password",
-            },
+            result["flow_id"], {CONF_API_KEY: API_KEY}
         )
-        await hass.async_block_till_done()
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Name of the device"
-    assert result["data"] == {
-        CONF_HOST: "1.1.1.1",
-        CONF_USERNAME: "test-username",
-        CONF_PASSWORD: "test-password",
-    }
-    assert len(mock_setup_entry.mock_calls) == 1
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["title"] == "NEO Smartbox"
+    assert result["data"] == {CONF_API_KEY: API_KEY}
 
 
-async def test_form_invalid_auth(
-    hass: HomeAssistant, mock_setup_entry: AsyncMock
-) -> None:
-    """Test we handle invalid auth."""
+async def test_user_flow_no_devices(hass: HomeAssistant) -> None:
+    """Test the user initiated config flow with no devices found."""
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN, context={"source": SOURCE_USER}
     )
 
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+
     with patch(
-        "homeassistant.components.neo_smartbox.config_flow.PlaceholderHub.authenticate",
-        side_effect=InvalidAuth,
-    ):
+        "homeassistant.components.neo_smartbox.config_flow.NeoSmartboxApiClient",
+        autospec=True,
+    ) as api_client_mock:
+        client = api_client_mock.return_value
+        client.get_all_devices = AsyncMock(return_value=[])
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_HOST: "1.1.1.1",
-                CONF_USERNAME: "test-username",
-                CONF_PASSWORD: "test-password",
-            },
+            result["flow_id"], {CONF_API_KEY: API_KEY}
         )
 
-    assert result["type"] is FlowResultType.FORM
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "no_devices_found"}
+
+
+async def test_user_flow_auth_error(hass: HomeAssistant) -> None:
+    """Test the user initiated config flow with authentication error."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+    with patch(
+        "homeassistant.components.neo_smartbox.config_flow.NeoSmartboxApiClient",
+        autospec=True,
+    ) as api_client_mock:
+        client = api_client_mock.return_value
+        client.get_all_devices = AsyncMock(
+            side_effect=aiohttp.ClientResponseError(
+                request_info=None, history=None, status=403
+            )
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_API_KEY: API_KEY}
+        )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
     assert result["errors"] == {"base": "invalid_auth"}
 
-    # Make sure the config flow tests finish with either an
-    # FlowResultType.CREATE_ENTRY or FlowResultType.ABORT so
-    # we can show the config flow is able to recover from an error.
-    with patch(
-        "homeassistant.components.neo_smartbox.config_flow.PlaceholderHub.authenticate",
-        return_value=True,
-    ):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_HOST: "1.1.1.1",
-                CONF_USERNAME: "test-username",
-                CONF_PASSWORD: "test-password",
-            },
-        )
-        await hass.async_block_till_done()
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Name of the device"
-    assert result["data"] == {
-        CONF_HOST: "1.1.1.1",
-        CONF_USERNAME: "test-username",
-        CONF_PASSWORD: "test-password",
-    }
-    assert len(mock_setup_entry.mock_calls) == 1
-
-
-async def test_form_cannot_connect(
-    hass: HomeAssistant, mock_setup_entry: AsyncMock
-) -> None:
-    """Test we handle cannot connect error."""
+async def test_user_flow_connection_error(hass: HomeAssistant) -> None:
+    """Test the user initiated config flow with connection error."""
     result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
+        DOMAIN, context={"source": SOURCE_USER}
     )
 
-    with patch(
-        "homeassistant.components.neo_smartbox.config_flow.PlaceholderHub.authenticate",
-        side_effect=CannotConnect,
-    ):
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_HOST: "1.1.1.1",
-                CONF_USERNAME: "test-username",
-                CONF_PASSWORD: "test-password",
-            },
-        )
-
-    assert result["type"] is FlowResultType.FORM
-    assert result["errors"] == {"base": "cannot_connect"}
-
-    # Make sure the config flow tests finish with either an
-    # FlowResultType.CREATE_ENTRY or FlowResultType.ABORT so
-    # we can show the config flow is able to recover from an error.
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
 
     with patch(
-        "homeassistant.components.neo_smartbox.config_flow.PlaceholderHub.authenticate",
-        return_value=True,
-    ):
+        "homeassistant.components.neo_smartbox.config_flow.NeoSmartboxApiClient",
+        autospec=True,
+    ) as api_client_mock:
+        client = api_client_mock.return_value
+        client.get_all_devices = AsyncMock(side_effect=aiohttp.ClientConnectionError())
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_HOST: "1.1.1.1",
-                CONF_USERNAME: "test-username",
-                CONF_PASSWORD: "test-password",
-            },
+            result["flow_id"], {CONF_API_KEY: API_KEY}
         )
-        await hass.async_block_till_done()
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Name of the device"
-    assert result["data"] == {
-        CONF_HOST: "1.1.1.1",
-        CONF_USERNAME: "test-username",
-        CONF_PASSWORD: "test-password",
-    }
-    assert len(mock_setup_entry.mock_calls) == 1
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "unknown"}
+
+
+async def test_user_flow_unknown_error(hass: HomeAssistant) -> None:
+    """Test the user initiated config flow with unknown error."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+    with patch(
+        "homeassistant.components.neo_smartbox.config_flow.NeoSmartboxApiClient",
+        autospec=True,
+    ) as api_client_mock:
+        client = api_client_mock.return_value
+        client.get_all_devices = AsyncMock(side_effect=Exception("Unknown error"))
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_API_KEY: API_KEY}
+        )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "unknown"}

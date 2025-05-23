@@ -33,16 +33,18 @@
         "title": "Connect to NEO Smartbox",
         "description": "Enter your NEO Smartbox API Key",
         "data": {
-          "host": "[%key:common::config_flow::data::host%]",
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "Access Token 123"
+          "api_key": "API Key"
+        },
+        "data_description": {
+          "api_key": "Your NEO Smartbox API Key"
         }
       }
     },
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "no_devices_found": "No NEO Smartbox devices found on your account"
     },
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
@@ -88,7 +90,7 @@
     },
     "navigate_to_live_channel": {
       "name": "Navigate to Live Channel",
-      "description": "Navigate to a specific live channel on the NEO Smartbox.",
+      "description": "Navigate to a specific live TV channel",
       "fields": {
         "channel_id": {
           "name": "Channel",
@@ -96,23 +98,13 @@
         }
       }
     },
-    "navigate_to_destination": {
-      "name": "Navigate to Destination",
-      "description": "Navigate to a specific destination on the NEO Smartbox.",
-      "fields": {
-        "destination": {
-          "name": "Destination",
-          "description": "The destination to navigate to."
-        }
-      }
-    },
     "navigate_to_custom_action": {
       "name": "Navigate to Custom Action",
-      "description": "Navigate to a specific custom action on the NEO Smartbox.",
+      "description": "Navigate to a specific app or action",
       "fields": {
         "action": {
           "name": "Action",
-          "description": "The destination to navigate to."
+          "description": "Custom action path to navigate to"
         }
       }
     }

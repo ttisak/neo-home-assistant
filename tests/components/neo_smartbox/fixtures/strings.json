@@ -1,0 +1,74 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to NEO Smartbox",
+        "description": "Please enter your API Key to connect to NEO Smartbox.",
+        "data": {
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect, please check your API key and try again.",
+      "invalid_auth": "Invalid authentication, please check your API key.",
+      "no_devices_found": "No devices found on your account.",
+      "unknown": "Unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This API key is already configured."
+    }
+  },
+  "services": {
+    "remote_key_action": {
+      "name": "Remote Key Action",
+      "description": "Send a key action to a NEO Smartbox device.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The NEO Smartbox device to control."
+        },
+        "key_name": {
+          "name": "Key",
+          "description": "The remote key to press."
+        },
+        "long_press": {
+          "name": "Long Press",
+          "description": "Whether to perform a long press of the key."
+        },
+        "key_repeat": {
+          "name": "Repeat",
+          "description": "Number of times to repeat the key press."
+        }
+      }
+    },
+    "navigate_to_live_channel": {
+      "name": "Navigate To Live Channel",
+      "description": "Navigate to a specific live TV channel.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The NEO Smartbox device to control."
+        },
+        "channel_id": {
+          "name": "Channel ID",
+          "description": "The ID of the channel to navigate to."
+        }
+      }
+    },
+    "navigate_to_custom_action": {
+      "name": "Navigate To Custom Action",
+      "description": "Navigate to a custom action defined by NEO Smartbox.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The NEO Smartbox device to control."
+        },
+        "custom_action": {
+          "name": "Custom Action",
+          "description": "The custom action to navigate to."
+        }
+      }
+    }
+  }
+}

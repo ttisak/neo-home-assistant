@@ -52,12 +52,15 @@ class NeoSmartboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if err.status == 403:
                     errors["base"] = "invalid_auth"
                 else:
-                    errors["base"] = "cannot_connect"
+                    errors["base"] = "unknown"
                     _LOGGER.error("Connection error: %s", err)
+            except aiohttp.ClientConnectionError:
+                errors["base"] = "unknown"
+                _LOGGER.error("Connection error")
             except ConfigEntryAuthFailed:
                 errors["base"] = "invalid_auth"
-            except Exception:
-                _LOGGER.exception("Unexpected exception")
+            except Exception as err:
+                _LOGGER.exception("Unexpected exception", exc_info=err)
                 errors["base"] = "unknown"
 
         return self.async_show_form(

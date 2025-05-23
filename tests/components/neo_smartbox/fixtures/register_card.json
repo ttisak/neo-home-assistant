@@ -1,0 +1,8 @@
+{
+  "type": "register",
+  "data": {
+    "tag": "neo-smartbox-remote-card",
+    "name": "NEO Smartbox Remote Card",
+    "path": "/api/neo_smartbox/web/card/neo-smartbox-remote-card.js"
+  }
+}
