@@ -16,6 +16,7 @@ from homeassistant.components.neo_smartbox.models import (
     NeoDeviceType,
     NeoSmartboxApiClient,
     NeoSmartboxDevice,
+    TvChannel,
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
@@ -101,6 +102,87 @@ async def test_get_stb_list_auth_error(mock_session: MagicMock) -> None:
         await client._get_stb_list()
 
 
+async def test_get_stb_list_client_error(mock_session: MagicMock) -> None:
+    """Test client error when getting STB list."""
+    mock_session.post = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=500,
+            message="Server error",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(aiohttp.ClientResponseError):
+        await client._get_stb_list()
+
+
+async def test_get_stb_list_403_client_error(mock_session: MagicMock) -> None:
+    """Test 403 client error when getting STB list."""
+    mock_session.post = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=403,
+            message="Forbidden",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client._get_stb_list()
+
+
+async def test_get_smart_tv_list_auth_error(mock_session: MagicMock) -> None:
+    """Test authentication error when getting Smart TV list."""
+    tv_response = MagicMock()
+    tv_response.status = 403
+
+    mock_session.get = AsyncMock(return_value=tv_response)
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client._get_smart_tv_list()
+
+
+async def test_get_smart_tv_list_client_error(mock_session: MagicMock) -> None:
+    """Test client error when getting Smart TV list."""
+    mock_session.get = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=500,
+            message="Server error",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(aiohttp.ClientResponseError):
+        await client._get_smart_tv_list()
+
+
+async def test_get_smart_tv_list_403_client_error(mock_session: MagicMock) -> None:
+    """Test 403 client error when getting Smart TV list."""
+    mock_session.get = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=403,
+            message="Forbidden",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client._get_smart_tv_list()
+
+
 async def test_send_key_action(mock_session: MagicMock) -> None:
     """Test sending key action."""
     response = MagicMock()
@@ -125,6 +207,53 @@ async def test_send_key_action(mock_session: MagicMock) -> None:
             "long_press": False,
         },
     )
+
+
+async def test_send_key_action_auth_error(mock_session: MagicMock) -> None:
+    """Test authentication error when sending key action."""
+    response = MagicMock()
+    response.status = 403
+
+    mock_session.post = AsyncMock(return_value=response)
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client.send_key_action(STB_DEVICE_ID, "Home")
+
+
+async def test_send_key_action_client_error(mock_session: MagicMock) -> None:
+    """Test client error when sending key action."""
+    mock_session.post = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=500,
+            message="Server error",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+    result = await client.send_key_action(STB_DEVICE_ID, "Home")
+
+    assert result is False
+
+
+async def test_send_key_action_403_client_error(mock_session: MagicMock) -> None:
+    """Test 403 client error when sending key action."""
+    mock_session.post = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=403,
+            message="Forbidden",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client.send_key_action(STB_DEVICE_ID, "Home")
 
 
 async def test_navigate_action_tune(mock_session: MagicMock) -> None:
@@ -171,6 +300,53 @@ async def test_navigate_action_custom(mock_session: MagicMock) -> None:
     )
 
 
+async def test_navigate_action_auth_error(mock_session: MagicMock) -> None:
+    """Test authentication error when sending navigate action."""
+    response = MagicMock()
+    response.status = 403
+
+    mock_session.post = AsyncMock(return_value=response)
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client.navigate_action(STB_DEVICE_ID, "some_action")
+
+
+async def test_navigate_action_client_error(mock_session: MagicMock) -> None:
+    """Test client error when sending navigate action."""
+    mock_session.post = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=500,
+            message="Server error",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+    result = await client.navigate_action(STB_DEVICE_ID, "some_action")
+
+    assert result is False
+
+
+async def test_navigate_action_403_client_error(mock_session: MagicMock) -> None:
+    """Test 403 client error when sending navigate action."""
+    mock_session.post = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=403,
+            message="Forbidden",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client.navigate_action(STB_DEVICE_ID, "some_action")
+
+
 async def test_get_channel_list(mock_session: MagicMock) -> None:
     """Test getting channel list."""
     response = MagicMock()
@@ -198,6 +374,7 @@ async def test_get_channel_list(mock_session: MagicMock) -> None:
     channels = await client.get_channel_list()
 
     assert len(channels) == 1
+    assert isinstance(channels[0], TvChannel)
     assert channels[0].id == "ch1"
     assert channels[0].title == "Channel 1"
     assert channels[0].number == "1"
@@ -210,3 +387,95 @@ async def test_get_channel_list(mock_session: MagicMock) -> None:
         headers=client.headers,
         json={},
     )
+
+
+async def test_get_channel_list_auth_error(mock_session: MagicMock) -> None:
+    """Test authentication error when getting channel list."""
+    response = MagicMock()
+    response.status = 403
+
+    mock_session.get = AsyncMock(return_value=response)
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client.get_channel_list()
+
+
+async def test_get_channel_list_client_error(mock_session: MagicMock) -> None:
+    """Test client error when getting channel list."""
+    mock_session.get = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=500,
+            message="Server error",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(aiohttp.ClientResponseError):
+        await client.get_channel_list()
+
+
+async def test_get_channel_list_403_client_error(mock_session: MagicMock) -> None:
+    """Test 403 client error when getting channel list."""
+    mock_session.get = AsyncMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=403,
+            message="Forbidden",
+        )
+    )
+
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    with pytest.raises(ConfigEntryAuthFailed, match="Invalid API key"):
+        await client.get_channel_list()
+
+
+async def test_api_client_initialization(mock_session: MagicMock) -> None:
+    """Test API client initialization."""
+    client = NeoSmartboxApiClient(API_KEY, mock_session)
+
+    assert client.api_key == API_KEY
+    assert client.session == mock_session
+    assert "authorization" in client.headers
+    assert client.headers["authorization"] == f"APIGW-AUTH-TOK {API_KEY}"
+    assert client.headers["content-type"] == "application/json"
+
+
+async def test_neo_smartbox_device_dataclass() -> None:
+    """Test NeoSmartboxDevice dataclass."""
+    device = NeoSmartboxDevice(id="test_id", name="Test Device", type=NeoDeviceType.STB)
+
+    assert device.id == "test_id"
+    assert device.name == "Test Device"
+    assert device.type == NeoDeviceType.STB
+
+
+async def test_tv_channel_dataclass() -> None:
+    """Test TvChannel dataclass."""
+    channel = TvChannel(
+        id="ch1",
+        title="Test Channel",
+        number="1",
+        logo="logo.png",
+        favorite=True,
+        group="Test Group",
+    )
+
+    assert channel.id == "ch1"
+    assert channel.title == "Test Channel"
+    assert channel.number == "1"
+    assert channel.logo == "logo.png"
+    assert channel.favorite is True
+    assert channel.group == "Test Group"
+
+
+async def test_neo_device_type_enum() -> None:
+    """Test NeoDeviceType enum values."""
+    assert NeoDeviceType.STB.value == "dt_stb"
+    assert NeoDeviceType.SMART_TV.value == "dt_tv"
